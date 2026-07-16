@@ -67,18 +67,24 @@ function closeSocket(socket, code = 1011, reason = 'Relay connection closed') {
   }
 }
 
-function bridge(client, upstream, ip) {
+function bridge(client, upstream, ip, route) {
   let closed = false;
+  const connectedAt = Date.now();
   client.isAlive = true;
   upstream.isAlive = true;
 
-  const cleanup = () => {
+  const finish = (source, details = '') => {
     if(closed) {
       return;
     }
 
     closed = true;
     releaseConnection(ip);
+    const durationMs = Date.now() - connectedAt;
+    console.log(
+      `relay closed dc=${route.dcId} type=${route.connectionType} premium=${route.premium} ` +
+      `source=${source} duration_ms=${durationMs}${details ? ` ${details}` : ''}`
+    );
   };
 
   client.on('pong', () => {
@@ -93,7 +99,7 @@ function bridge(client, upstream, ip) {
       if(upstream.bufferedAmount + data.length > MAX_BUFFERED_BYTES) {
         client.terminate();
         upstream.terminate();
-        cleanup();
+        finish('buffer', 'direction=client_to_telegram');
         return;
       }
 
@@ -105,7 +111,7 @@ function bridge(client, upstream, ip) {
       if(client.bufferedAmount + data.length > MAX_BUFFERED_BYTES) {
         client.terminate();
         upstream.terminate();
-        cleanup();
+        finish('buffer', 'direction=telegram_to_client');
         return;
       }
 
@@ -114,20 +120,20 @@ function bridge(client, upstream, ip) {
   });
 
   client.on('close', (code, reason) => {
-    cleanup();
+    finish('client', `code=${code} reason=${JSON.stringify(reason.toString().slice(0, 120))}`);
     closeSocket(upstream, code === 1000 ? 1000 : 1011, reason.toString().slice(0, 120));
   });
   upstream.on('close', (code, reason) => {
-    cleanup();
+    finish('telegram', `code=${code} reason=${JSON.stringify(reason.toString().slice(0, 120))}`);
     closeSocket(client, code === 1000 ? 1000 : 1011, reason.toString().slice(0, 120));
   });
 
-  client.on('error', () => {
-    cleanup();
+  client.on('error', (error) => {
+    finish('client_error', `message=${JSON.stringify(error.message)}`);
     closeSocket(upstream);
   });
-  upstream.on('error', () => {
-    cleanup();
+  upstream.on('error', (error) => {
+    finish('telegram_error', `message=${JSON.stringify(error.message)}`);
     closeSocket(client);
   });
 
@@ -140,7 +146,7 @@ function bridge(client, upstream, ip) {
     if(!client.isAlive || !upstream.isAlive) {
       client.terminate();
       upstream.terminate();
-      cleanup();
+      finish('heartbeat');
       clearInterval(heartbeat);
       return;
     }
@@ -211,6 +217,9 @@ server.on('upgrade', (request, socket, head) => {
   const abortUpstream = () => {
     if(!upgraded) {
       releaseReservation();
+      console.warn(
+        `relay upstream failed dc=${route.dcId} type=${route.connectionType} premium=${route.premium}`
+      );
       rejectUpgrade(socket, 502, 'Bad Gateway');
       upstream.terminate();
     }
@@ -229,7 +238,10 @@ server.on('upgrade', (request, socket, head) => {
       upgraded = true;
       reservationReleased = true;
       webSocketServer.emit('connection', client, request);
-      bridge(client, upstream, ip);
+      console.log(
+        `relay opened dc=${route.dcId} type=${route.connectionType} premium=${route.premium}`
+      );
+      bridge(client, upstream, ip, route);
     });
   });
 });
