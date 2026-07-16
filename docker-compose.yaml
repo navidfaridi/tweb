@@ -1,40 +1,51 @@
-version: "3.8"
 services:
-  tweb.dependencies:
-    container_name: tweb.dependencies
-    build:
-      context: .
-      dockerfile: .docker/Dockerfile_dependencies
-    volumes:
-      - "./node_modules:/app/node_modules"
-    command: pnpm install
-
-  tweb.develop:
-    container_name: tweb.develop
-    build:
-      context: .
-      dockerfile: .docker/Dockerfile_develop
-    volumes:
-      - "./:/app"
-    ports:
-      - 8080:8080
-    command: pnpm start-in-docker
-
-  tweb.production:
+  web:
     container_name: tweb.production
     restart: unless-stopped
     build:
       context: .
       dockerfile: .docker/Dockerfile_production
+      args:
+        VITE_MTPROTO_RELAY_URL: ${VITE_MTPROTO_RELAY_URL:-wss://wss.itext.ir}
     expose:
       - "80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  relay:
+    container_name: tweb.relay
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: relay/Dockerfile
+    environment:
+      PORT: 3001
+      ALLOWED_ORIGINS: ${RELAY_ALLOWED_ORIGINS:-https://tweb.itext.ir}
+      MAX_CONNECTIONS_PER_IP: ${RELAY_MAX_CONNECTIONS_PER_IP:-24}
+      MAX_PAYLOAD_BYTES: ${RELAY_MAX_PAYLOAD_BYTES:-16777216}
+      MAX_BUFFERED_BYTES: ${RELAY_MAX_BUFFERED_BYTES:-16777216}
+      HEARTBEAT_INTERVAL_MS: ${RELAY_HEARTBEAT_INTERVAL_MS:-25000}
+      UPSTREAM_CONNECT_TIMEOUT_MS: ${RELAY_UPSTREAM_CONNECT_TIMEOUT_MS:-7000}
+    expose:
+      - "3001"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3001/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   caddy:
     image: caddy:2-alpine
     container_name: tweb.caddy
     restart: unless-stopped
     depends_on:
-      - tweb.production
+      web:
+        condition: service_healthy
+      relay:
+        condition: service_healthy
     ports:
       - "80:80"
       - "443:443"

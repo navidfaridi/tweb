@@ -15,6 +15,7 @@ interface ImportMetaEnv {
   readonly VITE_MTPROTO_AUTO: string;
   readonly VITE_MTPROTO_HAS_HTTP: string;
   readonly VITE_MTPROTO_HAS_WS: string;
+  readonly VITE_MTPROTO_RELAY_URL?: string;
   readonly VITE_SAFARI_PROXY_WEBSOCKET: string;
   // injected via `define` by vite.preview.config.ts; absent in every other build
   readonly VITE_PREVIEW?: boolean;

@@ -1,3 +1,14 @@
 tweb.itext.ir {
-  reverse_proxy tweb.production:80
+  encode zstd gzip
+  reverse_proxy web:80
+}
+
+wss.itext.ir {
+  @mtproto path /mtproto/*
+  reverse_proxy @mtproto relay:3001
+
+  @health path /healthz
+  reverse_proxy @health relay:3001
+
+  respond 404
 }

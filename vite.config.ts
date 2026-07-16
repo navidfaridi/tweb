@@ -133,7 +133,7 @@ export default defineConfig({
     //   /* features options - all disabled by default */
     //   autoname: true // e.g. enable autoname
     // }),
-    process.env.VITEST || process.env.TWEB_PREVIEW ? undefined : checker({
+    process.env.VITEST || process.env.TWEB_PREVIEW || process.env.TWEB_SKIP_CHECKER ? undefined : checker({
       typescript: true,
       eslint: {
         // for example, lint .ts and .tsx

@@ -1,0 +1,16 @@
+.git
+.agents
+.claude
+node_modules
+dist
+public
+public2
+public3
+coverage
+test-results
+playwright-report
+stats.html
+archive.zip
+certs
+.env.local
+.env.production

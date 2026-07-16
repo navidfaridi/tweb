@@ -1,0 +1,14 @@
+{
+  "name": "tweb-mtproto-relay",
+  "version": "1.0.0",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "ws": "8.20.0"
+  }
+}

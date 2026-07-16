@@ -41,6 +41,12 @@ export function constructTelegramWebSocketUrl(dcId: DcId, connectionType: Connec
     return;
   }
 
+  const relayUrl = import.meta.env.VITE_MTPROTO_RELAY_URL?.replace(/\/$/, '');
+  if(relayUrl) {
+    const tier = premium ? '/premium' : '';
+    return `${relayUrl}/mtproto/${dcId}/${connectionType}${tier}`;
+  }
+
   const suffix = getTelegramConnectionSuffix(connectionType);
   const path = connectionType !== 'client' ? 'apiws' + TEST_SUFFIX + (premium ? PREMIUM_SUFFIX : '') : ('apiws' + TEST_SUFFIX);
   const chosenServer = `wss://${App.suffix.toLowerCase()}ws${dcId}${suffix}.web.telegram.org/${path}`;
