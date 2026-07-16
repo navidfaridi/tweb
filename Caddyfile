@@ -1,0 +1,3 @@
+tweb.itext.ir {
+  reverse_proxy tweb.production:80
+}
