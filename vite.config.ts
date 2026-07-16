@@ -197,7 +197,7 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
-    sourcemap: true,
+    sourcemap: !process.env.TWEB_DISABLE_SOURCEMAP,
     assetsDir: '',
     copyPublicDir: false,
     emptyOutDir: true,

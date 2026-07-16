@@ -17,14 +17,34 @@ ENV VITE_MTPROTO_RELAY_URL=$VITE_MTPROTO_RELAY_URL \
     VITE_MTPROTO_HTTP_UPLOAD= \
     VITE_MTPROTO_AUTO=
 
-RUN TWEB_SKIP_CHECKER=1 pnpm exec vite build
+RUN TWEB_SKIP_CHECKER=1 TWEB_DISABLE_SOURCEMAP=1 pnpm exec vite build
 
 FROM nginx:stable-alpine
 
 COPY .docker/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/public/ /usr/share/nginx/html/
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Vite intentionally does not copy public/: this repository also keeps old build
+# snapshots there. Copy only source assets and the fixed-name runtime binaries;
+# otherwise stale JS/service workers remain addressable after a deployment.
+COPY --from=build /app/public/assets /usr/share/nginx/html/assets
+COPY --from=build /app/public/changelogs /usr/share/nginx/html/changelogs
+COPY --from=build \
+    /app/public/browserconfig.xml \
+    /app/public/site.webmanifest \
+    /app/public/site_apple.webmanifest \
+    /app/public/version \
+    /app/public/decoderWorker.min.js \
+    /app/public/decoderWorker.min.wasm \
+    /app/public/encoderWorker.min.js \
+    /app/public/encoderWorker.min.wasm \
+    /app/public/recorder.min.js \
+    /app/public/rlottie-wasm.js \
+    /app/public/rlottie-wasm.wasm \
+    /app/public/waveWorker.min.js \
+    /usr/share/nginx/html/
+
 RUN test -f /usr/share/nginx/html/assets/fonts/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2
+RUN test ! -f /usr/share/nginx/html/index.worker-DAKMJ_kn.js
 
 EXPOSE 80
