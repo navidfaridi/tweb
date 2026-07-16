@@ -1214,7 +1214,7 @@ export default class AppSearchSuper {
       elemsToAppend.forEach((details) => {
         const {element, message} = details;
         if(!message) {
-          debugger;
+          return;
         }
 
         element.classList.add('search-super-item');
