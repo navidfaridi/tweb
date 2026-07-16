@@ -1,6 +1,6 @@
 import {Document, InputFileLocation} from '@layer';
 
-export default function getDocumentInputFileLocation(doc: Document.document, thumbSize?: string): InputFileLocation.inputDocumentFileLocation {
+export default function getDocumentInputFileLocation(doc: Document.document, thumbSize = ''): InputFileLocation.inputDocumentFileLocation {
   return {
     _: 'inputDocumentFileLocation',
     id: doc.id,
