@@ -3,7 +3,6 @@
 .claude
 node_modules
 dist
-public
 public2
 public3
 coverage

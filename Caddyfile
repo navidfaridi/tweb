@@ -4,11 +4,15 @@ tweb.itext.ir {
 }
 
 wss.itext.ir {
-  @mtproto path /mtproto/*
-  reverse_proxy @mtproto relay:3001
+  handle /mtproto/* {
+    reverse_proxy relay:3001
+  }
 
-  @health path /healthz
-  reverse_proxy @health relay:3001
+  handle /healthz {
+    reverse_proxy relay:3001
+  }
 
-  respond 404
+  handle {
+    respond 404
+  }
 }
