@@ -30,7 +30,7 @@ export default class AppGifsManager extends AppManager {
       this.gifs = undefined;
     }
 
-    return this.gifs ??= this.apiManager.invokeApi('messages.getSavedGifs').then((res) => {
+    return this.gifs ??= this.apiManager.invokeApi('messages.getSavedGifs', {hash: 0}).then((res) => {
       assumeType<MessagesSavedGifs.messagesSavedGifs>(res);
       const referenceContext: ReferenceContext = {type: 'savedGifs'};
       this.gifs = res.gifs.map((doc) => {

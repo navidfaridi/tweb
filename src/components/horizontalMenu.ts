@@ -52,6 +52,10 @@ export async function selectTarget({
   selectTab,
   onChange
 }: SelectTargetArgs) {
+  if(!target) {
+    return false;
+  }
+
   if(onClick) {
     const tabContent = content?.children[id] as HTMLDivElement;
     const result1 = onClick(id, tabContent, animate);

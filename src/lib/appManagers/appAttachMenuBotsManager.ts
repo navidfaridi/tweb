@@ -121,6 +121,7 @@ export default class AppAttachMenuBotsManager extends AppManager {
   public getAttachMenuBots() {
     return this.attachMenuBotsArr ?? this.apiManager.invokeApiSingleProcess({
       method: 'messages.getAttachMenuBots',
+      params: {hash: 0},
       processResult: (attachMenuBots) => {
         assumeType<AttachMenuBots.attachMenuBots>(attachMenuBots);
         this.appUsersManager.saveApiUsers(attachMenuBots.users);

@@ -125,6 +125,8 @@ export default abstract class ApiManagerMethods extends AppManager {
       }
     }
 
+    (params as any).hash ??= 0;
+
     return this.invokeApiSingleProcess<T, R>({
       method,
       processResult: (result) => {
